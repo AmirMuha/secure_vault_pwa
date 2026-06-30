@@ -23,8 +23,8 @@ echo "Deploying application via PM2..."
 # Delete old instance if it exists to avoid port/name conflicts
 pm2 delete "$APP_NAME" 2>/dev/null || true
 
-# Start the built dist folder using PM2's built-in static file server with SPA routing routing (fallback to index.html)
-pm2 start --name "$APP_NAME" serve -- ./dist $PORT --spa
+# Start the Node.js server using PM2 with the designated PORT
+PORT=$PORT pm2 start server.js --name "$APP_NAME"
 
 # Save the PM2 process list to load on reboot
 pm2 save
