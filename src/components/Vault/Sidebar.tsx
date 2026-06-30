@@ -48,7 +48,7 @@ export function Sidebar({
         />
       )}
 
-      <div className={`w-64 bg-slate-900 border-r border-white/5 flex flex-col h-full fixed lg:static inset-y-0 start-0 z-50 transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full'} lg:translate-x-0 shadow-2xl lg:shadow-none`}>
+      <div className={`w-64 bg-slate-900 border-e border-white/5 flex flex-col h-full fixed lg:static inset-y-0 start-0 z-50 transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full'} lg:translate-x-0 rtl:lg:translate-x-0 shadow-2xl lg:shadow-none`}>
         <div className="p-4 border-b border-white/5 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">{t('sidebar.library')}</h2>
         <div className="flex bg-slate-950 p-1 rounded-lg border border-white/5">

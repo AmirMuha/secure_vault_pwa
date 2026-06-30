@@ -99,22 +99,49 @@ export function Onboarding({ isInitialized, onInitComplete }: OnboardingProps) {
       const config = await db.vaultConfig.get('singleton');
       if (!config || !config.wrappedMDKPassword || !config.passwordIV) throw new Error("Vault not configured properly.");
 
-      const passwordKEK = await derivePasswordKEK(password, config.salt);
-      
-      const mdk = await window.crypto.subtle.unwrapKey(
-        'raw',
-        config.wrappedMDKPassword,
-        passwordKEK,
-        { name: 'AES-GCM', iv: config.passwordIV as any },
-        { name: 'AES-GCM', length: 256 },
-        true,
-        ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
-      );
+      let mdk: CryptoKey | null = null;
+      let isDecoy = false;
 
-      setPassword('');
-      login(mdk);
+      try {
+        const passwordKEK = await derivePasswordKEK(password, config.salt);
+        mdk = await window.crypto.subtle.unwrapKey(
+          'raw',
+          config.wrappedMDKPassword,
+          passwordKEK,
+          { name: 'AES-GCM', iv: config.passwordIV as any },
+          { name: 'AES-GCM', length: 256 },
+          true,
+          ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
+        );
+      } catch (err: any) {
+        const decoyConfig = await db.vaultConfig.get('decoy');
+        if (decoyConfig && decoyConfig.wrappedMDKPassword && decoyConfig.passwordIV) {
+          try {
+            const decoyKEK = await derivePasswordKEK(password, decoyConfig.salt);
+            mdk = await window.crypto.subtle.unwrapKey(
+              'raw',
+              decoyConfig.wrappedMDKPassword,
+              decoyKEK,
+              { name: 'AES-GCM', iv: decoyConfig.passwordIV as any },
+              { name: 'AES-GCM', length: 256 },
+              true,
+              ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
+            );
+            isDecoy = true;
+          } catch (decoyErr) {
+             throw new Error(t('auth.invalidPassword'));
+          }
+        } else {
+           throw new Error(t('auth.invalidPassword'));
+        }
+      }
+
+      if (mdk) {
+        setPassword('');
+        login(mdk, isDecoy);
+      }
     } catch (err: any) {
-      setError(t('auth.invalidPassword'));
+      setError(err.message || t('auth.invalidPassword'));
     } finally {
       setIsProcessing(false);
     }
@@ -236,26 +263,22 @@ export function Onboarding({ isInitialized, onInitComplete }: OnboardingProps) {
 
         {isInitialized && (
           <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-700/50" />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/10"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-[#0a0f1c] text-slate-400">{t('auth.orUnlockWith')}</span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm font-medium leading-6">
-                <span className="bg-slate-900 px-6 text-slate-400">Or unlock with</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
+              
               <button
                 onClick={handleBiometricLogin}
-                disabled={isProcessing}
-                className="flex w-full items-center justify-center gap-3 rounded-xl bg-slate-800/50 px-3 py-3.5 text-sm font-semibold text-white hover:bg-slate-700/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 border border-white/5 transition-all shadow-inner"
+                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-white/10 rounded-xl shadow-sm bg-slate-800/50 text-sm font-medium text-white hover:bg-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 focus:ring-offset-slate-900"
               >
-                <Fingerprint className="h-5 w-5 text-violet-400" />
-                <span className="text-slate-300">Biometrics / Passkey</span>
+                {t('auth.biometricOrPasskey')} <Fingerprint className="h-5 w-5 text-violet-400" />
               </button>
             </div>
-          </div>
         )}
 
         {!isInitialized && (

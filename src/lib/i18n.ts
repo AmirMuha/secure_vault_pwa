@@ -32,9 +32,14 @@ i18n.on('languageChanged', (lng) => {
   }
 });
 
-// Run once on load to set initial direction
-if (i18n.language && (i18n.language.startsWith('ar') || i18n.language.startsWith('fa'))) {
-  document.documentElement.dir = 'rtl';
+// Run once on load to set initial direction and language
+if (i18n.language) {
+  document.documentElement.lang = i18n.language;
+  if (i18n.language.startsWith('ar') || i18n.language.startsWith('fa')) {
+    document.documentElement.dir = 'rtl';
+  } else {
+    document.documentElement.dir = 'ltr';
+  }
 }
 
 export default i18n;

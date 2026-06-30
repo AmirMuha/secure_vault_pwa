@@ -8,9 +8,13 @@
     "actions": "الإجراءات",
     "size": "الحجم",
     "dateAdded": "تاريخ الإضافة",
-    "name": "الاسم"
+    "name": "الاسم",
+    "delete": "حذف",
+    "proceed": "متابعة"
   },
   "auth": {
+    "biometricOrPasskey": "القياسات الحيوية / مفتاح المرور",
+    "orUnlockWith": "أو افتح باستخدام",
     "welcome": "مرحباً بك في الخزنة الآمنة",
     "setupSubtitle": "قم بتهيئة خزينتك المشفرة AES-256-GCM دون اتصال بالإنترنت 100%.",
     "masterPassword": "كلمة المرور الرئيسية",
@@ -30,6 +34,10 @@
     "decryptionFailed": "فشل فك التشفير. تحقق من العبارة والملف."
   },
   "dashboard": {
+    "createNote": "إنشاء ملاحظة",
+    "originalFile": "الملف الأصلي",
+    "svaultFormat": "تنسيق .svault",
+    "noPreviewAvailable": "لا تتوفر معاينة لنوع هذا الملف.",
     "myFiles": "ملفاتي",
     "searchPlaceholder": "البحث في الملفات المشفرة...",
     "importVault": "استيراد .svault",
@@ -43,7 +51,13 @@
     "export": "تصدير",
     "exportDecrypted": "تصدير غير مشفر",
     "exportEncrypted": "تصدير مشفر",
-    "lockVault": "قفل الخزنة"
+    "lockVault": "قفل الخزنة",
+    "deleteFolderTitle": "حذف المجلد",
+    "deleteFolderConfirm": "هل أنت متأكد أنك تريد حذف هذا المجلد؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deleteFileTitle": "حذف الملف",
+    "deleteFileConfirm": "هل أنت متأكد أنك تريد حذف هذا الملف نهائياً؟",
+    "folderNotEmpty": "المجلد ليس فارغاً!",
+    "deleteFailed": "فشل في حذف الملف."
   },
   "sidebar": {
     "library": "المكتبة",
@@ -53,6 +67,34 @@
     "deleteEmpty": "حذف المجلد الفارغ"
   },
   "settings": {
+    "storageQuota": "حصة التخزين",
+    "used": "مستخدم",
+    "outOf": "من إجمالي {{total}} ميغابايت المخصصة من قبل المتصفح.",
+    "autoLockTimer": "مؤقت القفل التلقائي",
+    "autoLockDesc": "حدد المدة التي يظل فيها الخزنة مفتوحة عند التبديل بين التطبيقات أو عدم النشاط.",
+    "immediate": "فوراً (الأكثر أماناً)",
+    "oneMinute": "دقيقة واحدة",
+    "fiveMinutes": "5 دقائق",
+    "fifteenMinutes": "15 دقيقة",
+    "thirtyMinutes": "30 دقيقة",
+    "biometricLogin": "تسجيل الدخول البيومتري",
+    "biometricDesc": "استخدم Touch ID أو Face ID أو Windows Hello لفتح الخزنة.",
+    "enable": "تفعيل",
+    "disable": "تعطيل",
+    "fullVaultBackup": "نسخ احتياطي كامل للخزنة",
+    "fullBackupDesc": "تصدير الخزنة بأكملها (قاعدة البيانات والملفات) في أرشيف واحد مشفر. يمكن استيراد هذا النسخ الاحتياطي على أي جهاز لاستعادة خزنتك بالكامل.",
+    "exportFullBackup": "تصدير نسخة احتياطية كاملة",
+    "importBackup": "استيراد نسخة احتياطية",
+    "masterKeyRecovery": "استعادة المفتاح الرئيسي",
+    "decoyVault": "الخزنة الوهمية",
+    "decoyDesc": "قم بإنشاء خزنة \"وهمية\" ثانوية بكلمة مرور رئيسية خاصة بها. إذا أُجبرت يومًا على فتح خزنتك، أدخل كلمة المرور الوهمية للكشف عن ملفات غير ضارة.",
+    "newDecoyPassword": "كلمة مرور وهمية جديدة",
+    "confirmDecoyPassword": "تأكيد كلمة المرور الوهمية",
+    "createDecoyVault": "إنشاء خزنة وهمية",
+    "general": "عام",
+    "security": "أمان",
+    "backup": "نسخ احتياطي",
+    "advanced": "متقدم",
     "vaultSettings": "إعدادات الخزنة",
     "language": "اللغة",
     "english": "English",
@@ -61,6 +103,18 @@
     "dangerZone": "منطقة الخطر",
     "recoveryKey": "مفتاح الاسترداد",
     "recoveryDesc": "قم بإنشاء نسخة احتياطية غير متصلة بالإنترنت لمفتاح البيانات الرئيسي الخاص بك.",
-    "generateBackup": "إنشاء نسخة استرداد"
+    "generateBackup": "إنشاء نسخة استرداد",
+    "importBackupTitle": "استيراد النسخة الاحتياطية",
+    "importBackupConfirm": "تحذير: استيراد نسخة احتياطية كاملة سيؤدي إلى استبدال الخزنة الحالية بالكامل. هل أنت متأكد أنك تريد المتابعة؟",
+    "importSuccess": "تمت استعادة الخزنة بنجاح! سيتم إعادة تحميل الصفحة الآن.",
+    "importFailed": "فشل استيراد النسخة الاحتياطية. تأكد من صلاحية الملف وتسجيل الدخول إلى الحساب الصحيح."
+  },
+  "noteEditor": {
+    "untitledNote": "ملاحظة بدون عنوان",
+    "noteTitlePlaceholder": "عنوان الملاحظة...",
+    "markdown": "مارك داون (Markdown)",
+    "plainText": "نص عادي",
+    "saveToVault": "حفظ في الخزنة",
+    "startTyping": "ابدأ بكتابة ملاحظتك الآمنة هنا... كل شيء يبقى في الذاكرة ويتم تشفيره مباشرة على القرص."
   }
 }

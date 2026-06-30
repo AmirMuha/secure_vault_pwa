@@ -3,13 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { db, opfsHelper, type EncryptedFile, type EncryptedCategory } from '../../lib/db';
 import { generateAES256Key, wrapKey, unwrapKey, encryptChunk, decryptChunk, getChunkIV, CHUNK_SIZE, arrayBufferToBase64, base64ToArrayBuffer } from '../../lib/crypto';
-import { Upload, File as FileIcon, Download, Eye, Lock, LogOut, Loader2, Trash2, X, Settings as SettingsIcon, ChevronDown, FileUp, Search, Menu } from 'lucide-react';
+import { Upload, File as FileIcon, Download, Eye, Lock, LogOut, Loader2, Trash2, X, Settings as SettingsIcon, ChevronDown, FileUp, Search, Menu, Edit3 } from 'lucide-react';
 import { Settings } from './Settings';
 import { Sidebar } from './Sidebar';
+import { NoteEditor } from './NoteEditor';
+import { ConfirmModal } from './ConfirmModal';
 
 export function VaultDashboard() {
-  const { t } = useTranslation();
-  const { masterDataKey, logout } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { masterDataKey, logout, isDecoy } = useAuth();
   
   const [files, setFiles] = useState<{ meta: EncryptedFile; name: string }[]>([]);
   const [categories, setCategories] = useState<{ meta: EncryptedCategory; name: string }[]>([]);
@@ -24,6 +26,12 @@ export function VaultDashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+  const [isEditingNote, setIsEditingNote] = useState(false);
 
   useEffect(() => {
     if (masterDataKey) {
@@ -41,8 +49,9 @@ export function VaultDashboard() {
   const loadCategories = async () => {
     if (!masterDataKey) return;
     const allCats = await db.categories.toArray();
+    const filteredCats = allCats.filter(c => !!c.isDecoy === isDecoy);
     const decryptedCats = await Promise.all(
-      allCats.map(async (cat) => {
+      filteredCats.map(async (cat) => {
         const dek = await unwrapKey(cat.wrappedDEK, masterDataKey, cat.dekIV, ['encrypt', 'decrypt']);
         const nameBuffer = await decryptChunk(cat.encryptedName, dek, getChunkIV(cat.dekIV, 111111));
         const name = new TextDecoder().decode(nameBuffer);
@@ -55,8 +64,9 @@ export function VaultDashboard() {
   const loadFiles = async () => {
     if (!masterDataKey) return;
     const allFiles = await db.files.toArray();
+    const filteredFiles = allFiles.filter(f => !!f.isDecoy === isDecoy);
     const decryptedFiles = await Promise.all(
-      allFiles.map(async (file) => {
+      filteredFiles.map(async (file) => {
         const dek = await unwrapKey(file.wrappedDEK, masterDataKey, file.dekIV, ['encrypt', 'decrypt']);
         const nameBuffer = await decryptChunk(file.encryptedName, dek, getChunkIV(file.dekIV, 999999));
         const name = new TextDecoder().decode(nameBuffer);
@@ -79,7 +89,8 @@ export function VaultDashboard() {
         encryptedName,
         createdAt: Date.now(),
         wrappedDEK,
-        dekIV
+        dekIV,
+        isDecoy: isDecoy || undefined
       });
       await loadCategories();
     } catch (err) {
@@ -89,15 +100,20 @@ export function VaultDashboard() {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm("Are you sure? This folder must be empty.")) return;
-    const filesInCat = await db.files.where('categoryId').equals(id).count();
-    if (filesInCat > 0) {
-      alert("Folder is not empty!");
-      return;
-    }
-    await db.categories.delete(id);
-    if (activeCategoryId === id) setActiveCategoryId('all');
-    await loadCategories();
+    setConfirmDialog({
+      title: t('dashboard.deleteFolderTitle'),
+      message: t('dashboard.deleteFolderConfirm'),
+      onConfirm: async () => {
+        const filesInCat = await db.files.where('categoryId').equals(id).count();
+        if (filesInCat > 0) {
+          alert(t('dashboard.folderNotEmpty'));
+          return;
+        }
+        await db.categories.delete(id);
+        if (activeCategoryId === id) setActiveCategoryId('all');
+        await loadCategories();
+      }
+    });
   };
 
   const handleFileUpload = async (input: React.ChangeEvent<HTMLInputElement> | File) => {
@@ -137,7 +153,8 @@ export function VaultDashboard() {
           wrappedDEK: base64ToArrayBuffer(metadata.wrappedDEK),
           dekIV: new Uint8Array(base64ToArrayBuffer(metadata.dekIV)),
           chunksOpfsPath: opfsPath,
-          categoryId: activeCategoryId === 'all' ? undefined : activeCategoryId
+          categoryId: activeCategoryId === 'all' ? undefined : activeCategoryId,
+          isDecoy: isDecoy || undefined
         });
         
         await loadFiles();
@@ -181,7 +198,8 @@ export function VaultDashboard() {
         wrappedDEK,
         dekIV,
         chunksOpfsPath: opfsPath,
-        categoryId: activeCategoryId === 'all' ? undefined : activeCategoryId
+        categoryId: activeCategoryId === 'all' ? undefined : activeCategoryId,
+        isDecoy: isDecoy || undefined
       });
 
       await loadFiles();
@@ -194,6 +212,54 @@ export function VaultDashboard() {
       if (!(input instanceof File)) {
         input.target.value = '';
       }
+    }
+  };
+
+  const handleSaveNote = async (title: string, content: string) => {
+    if (!masterDataKey) return;
+    setIsUploading(true);
+    try {
+      const dek = await generateAES256Key();
+      const { wrappedKey: wrappedDEK, iv: dekIV } = await wrapKey(dek, masterDataKey);
+      
+      const ext = title.includes('.') ? '' : '.txt';
+      const nameBuffer = new TextEncoder().encode(title + ext);
+      const mimeBuffer = new TextEncoder().encode('text/plain');
+      const contentBuffer = new TextEncoder().encode(content);
+      
+      const encryptedName = await encryptChunk(nameBuffer as any, dek, getChunkIV(dekIV, 999999) as any);
+      const encryptedMimeType = await encryptChunk(mimeBuffer as any, dek, getChunkIV(dekIV, 999998) as any);
+
+      const fileId = crypto.randomUUID();
+      const opfsPath = `vault_${fileId}.enc`;
+
+      // Encrypt the note content as a single chunk since it's typically small
+      const encryptedContent = await encryptChunk(contentBuffer as any, dek, getChunkIV(dekIV, 0));
+      await opfsHelper.writeFileChunks(opfsPath, [encryptedContent]);
+
+      // Secure wipe the plain text buffer in memory
+      contentBuffer.fill(0);
+
+      await db.files.add({
+        id: fileId,
+        encryptedName,
+        encryptedMimeType,
+        size: contentBuffer.byteLength,
+        createdAt: Date.now(),
+        wrappedDEK,
+        dekIV,
+        chunksOpfsPath: opfsPath,
+        categoryId: activeCategoryId === 'all' ? undefined : activeCategoryId,
+        isDecoy: isDecoy || undefined
+      });
+
+      await loadFiles();
+      setIsEditingNote(false);
+    } catch (err) {
+      console.error("Save note failed:", err);
+      alert("Failed to save note.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -273,8 +339,16 @@ export function VaultDashboard() {
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else if (action === 'preview') {
         if (previewUrl) URL.revokeObjectURL(previewUrl.url);
-        const url = URL.createObjectURL(blob);
-        setPreviewUrl({ url, type: mimeType, name });
+        
+        // If it's a text note, we should render text directly
+        if (mimeType.startsWith('text/')) {
+          const textDecoded = new TextDecoder().decode(blob.arrayBuffer ? await blob.arrayBuffer() : await new Response(blob).arrayBuffer());
+          const url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(textDecoded);
+          setPreviewUrl({ url, type: mimeType, name });
+        } else {
+          const url = URL.createObjectURL(blob);
+          setPreviewUrl({ url, type: mimeType, name });
+        }
       }
     } catch (err) {
       console.error("Decryption failed:", err);
@@ -284,15 +358,21 @@ export function VaultDashboard() {
     }
   };
 
-  const handleDelete = async (fileId: string, opfsPath: string) => {
-    if (!confirm("Are you sure you want to permanently delete this file?")) return;
-    try {
-      await db.files.delete(fileId);
-      await opfsHelper.deleteFile(opfsPath);
-      await loadFiles();
-    } catch (err) {
-      console.error("Delete failed:", err);
-    }
+  const handleDeleteFile = async (fileId: string, opfsPath: string) => {
+    setConfirmDialog({
+      title: t('dashboard.deleteFileTitle'),
+      message: t('dashboard.deleteFileConfirm'),
+      onConfirm: async () => {
+        try {
+          await db.files.delete(fileId);
+          await opfsHelper.deleteFile(opfsPath);
+          await loadFiles();
+        } catch (err) {
+          console.error("Delete failed:", err);
+          alert(t('dashboard.deleteFailed'));
+        }
+      }
+    });
   };
 
   const onDragOver = (e: React.DragEvent) => {
@@ -351,6 +431,22 @@ export function VaultDashboard() {
       </header>
 
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      {isEditingNote && (
+        <NoteEditor
+          onSave={handleSaveNote}
+          onClose={() => setIsEditingNote(false)}
+        />
+      )}
+
+      {confirmDialog && (
+        <ConfirmModal
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
+          confirmText={t('common.delete')}
+        />
+      )}
 
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar 
@@ -397,6 +493,15 @@ export function VaultDashboard() {
               </div>
 
               <div className="relative z-10 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setIsEditingNote(true)}
+                  disabled={isUploading}
+                  className={`flex items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-300 transition-all shadow-lg hover:bg-slate-700 hover:text-white ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <Edit3 className="h-4 w-4" />
+                  {t('dashboard.createNote')}
+                </button>
+
                 <input
                   type="file"
                   id="importVaultUpload"
@@ -452,7 +557,7 @@ export function VaultDashboard() {
                           <span className="font-medium text-white truncate max-w-[120px] sm:max-w-[200px] lg:max-w-xs" title={file.name}>{file.name}</span>
                         </td>
                         <td className="px-4 sm:px-6 py-4 hidden lg:table-cell text-slate-400 whitespace-nowrap">
-                          {new Date(file.meta.createdAt).toLocaleDateString()}
+                          {new Date(file.meta.createdAt).toLocaleDateString(i18n.language)}
                         </td>
                         <td className="px-4 sm:px-6 py-4 hidden md:table-cell text-slate-400 whitespace-nowrap">
                           {(file.meta.size / 1024 / 1024).toFixed(2)} MB
@@ -474,7 +579,7 @@ export function VaultDashboard() {
                                 </div>
                               </div>
                             </div>
-                            <button onClick={() => handleDelete(file.meta.id, file.meta.chunksOpfsPath)} className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100">
+                            <button onClick={() => handleDeleteFile(file.meta.id, file.meta.chunksOpfsPath)} className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100">
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -496,7 +601,7 @@ export function VaultDashboard() {
                         <FileIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                       <button 
-                        onClick={() => handleDelete(file.meta.id, file.meta.chunksOpfsPath)}
+                        onClick={() => handleDeleteFile(file.meta.id, file.meta.chunksOpfsPath)}
                         className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 transition-all rounded-lg hover:bg-red-400/10 shrink-0 ml-2"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -507,8 +612,10 @@ export function VaultDashboard() {
                       <h3 className="text-base sm:text-lg font-medium text-white truncate" title={file.name}>
                         {file.name}
                       </h3>
-                      <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                        {(file.meta.size / 1024 / 1024).toFixed(2)} MB • {new Date(file.meta.createdAt).toLocaleDateString()}
+                      <p className="text-xs sm:text-sm text-slate-400 mt-1 flex items-center justify-start rtl:justify-end gap-1.5 flex-wrap" dir="ltr">
+                        <span>{(file.meta.size / 1024 / 1024).toFixed(2)} MB</span>
+                        <span className="opacity-50">•</span>
+                        <span>{new Date(file.meta.createdAt).toLocaleDateString(i18n.language)}</span>
                       </p>
                     </div>
 
@@ -535,14 +642,14 @@ export function VaultDashboard() {
                               className="px-4 py-3 text-start text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors border-b border-white/5"
                             >
                               <span className="block font-medium">{t('dashboard.exportDecrypted')}</span>
-                              <span className="block text-xs text-slate-500 mt-0.5">Original File</span>
+                              <span className="block text-xs text-slate-500 mt-0.5">{t('dashboard.originalFile')}</span>
                             </button>
                             <button
                               onClick={() => handleDownload(file, 'export-encrypted')}
                               className="px-4 py-3 text-start text-sm text-violet-300 hover:bg-violet-900/40 hover:text-violet-200 transition-colors"
                             >
                               <span className="block font-medium">{t('dashboard.exportEncrypted')}</span>
-                              <span className="block text-xs text-violet-500/70 mt-0.5">.svault format</span>
+                              <span className="block text-xs text-violet-500/70 mt-0.5">{t('dashboard.svaultFormat')}</span>
                             </button>
                           </div>
                         </div>
@@ -587,10 +694,14 @@ export function VaultDashboard() {
                 <video src={previewUrl.url} controls className="max-w-full max-h-[75vh] rounded-lg" />
               ) : previewUrl.type === 'application/pdf' ? (
                 <iframe src={previewUrl.url} className="w-full h-[75vh] rounded-lg bg-white" title={previewUrl.name} />
+              ) : previewUrl.type.startsWith('text/') || previewUrl.url.startsWith('data:text') ? (
+                <div className="w-full h-[75vh] bg-slate-950 p-6 overflow-auto rounded-lg text-slate-200 font-mono text-sm whitespace-pre-wrap">
+                  {decodeURIComponent(previewUrl.url.replace('data:text/plain;charset=utf-8,', ''))}
+                </div>
               ) : (
                 <div className="text-center text-slate-400">
                   <FileIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>No preview available for this file type.</p>
+                  <p>{t('dashboard.noPreviewAvailable')}</p>
                   <p className="text-sm mt-2 opacity-70">{previewUrl.type}</p>
                 </div>
               )}

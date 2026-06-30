@@ -1,10 +1,11 @@
 // src/contexts/AuthContext.tsx
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 
 interface AuthContextType {
   masterDataKey: CryptoKey | null;
+  isDecoy: boolean;
   isAuthenticated: boolean;
-  login: (mdk: CryptoKey) => void;
+  login: (mdk: CryptoKey, decoy?: boolean) => void;
   logout: () => void;
 }
 
@@ -12,21 +13,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [masterDataKey, setMasterDataKey] = useState<CryptoKey | null>(null);
+  const [isDecoy, setIsDecoy] = useState<boolean>(false);
+  const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const backgroundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const login = (mdk: CryptoKey) => {
+  const login = (mdk: CryptoKey, decoy: boolean = false) => {
     setMasterDataKey(mdk);
+    setIsDecoy(decoy);
   };
 
   const logout = () => {
     setMasterDataKey(null);
+    setIsDecoy(false);
   };
 
-  // Auto-Lock Mechanism
+  const resetInactivityTimer = () => {
+    if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+    
+    if (!masterDataKey) return;
+    
+    const lockTimeoutStr = localStorage.getItem('vault_lock_timeout') || '0';
+    const lockTimeout = parseInt(lockTimeoutStr, 10);
+    
+    if (lockTimeout > 0) {
+      lockTimerRef.current = setTimeout(() => {
+        logout();
+      }, lockTimeout * 60 * 1000);
+    }
+  };
+
+  useEffect(() => {
+    resetInactivityTimer();
+    
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    const handleActivity = () => resetInactivityTimer();
+    
+    events.forEach(e => document.addEventListener(e, handleActivity));
+    
+    return () => {
+      events.forEach(e => document.removeEventListener(e, handleActivity));
+      if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+    };
+  }, [masterDataKey]);
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        // Drop the master data key immediately from memory
-        logout();
+        const lockTimeoutStr = localStorage.getItem('vault_lock_timeout') || '0';
+        const lockTimeout = parseInt(lockTimeoutStr, 10);
+        
+        if (lockTimeout === 0) {
+          logout();
+        } else {
+          backgroundTimerRef.current = setTimeout(() => {
+            logout();
+          }, lockTimeout * 60 * 1000);
+        }
+      } else {
+        if (backgroundTimerRef.current) {
+          clearTimeout(backgroundTimerRef.current);
+        }
       }
     };
 
@@ -47,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         masterDataKey,
+        isDecoy,
         isAuthenticated: !!masterDataKey,
         login,
         logout,

@@ -17,6 +17,7 @@ export interface EncryptedCategory {
   createdAt: number;
   wrappedDEK: ArrayBuffer;
   dekIV: Uint8Array;
+  isDecoy?: boolean;
 }
 
 export interface EncryptedFile {
@@ -29,6 +30,7 @@ export interface EncryptedFile {
   dekIV: Uint8Array;
   chunksOpfsPath: string; // Path/filename in OPFS where chunks are stored
   categoryId?: string; // Optional folder
+  isDecoy?: boolean;
 }
 
 export class VaultDatabase extends Dexie {
@@ -38,10 +40,10 @@ export class VaultDatabase extends Dexie {
 
   constructor() {
     super('SecureVaultDB');
-    this.version(2).stores({
+    this.version(3).stores({
       vaultConfig: 'id',
-      files: 'id, createdAt, categoryId',
-      categories: 'id, createdAt'
+      files: 'id, createdAt, categoryId, isDecoy',
+      categories: 'id, createdAt, isDecoy'
     });
   }
 }
