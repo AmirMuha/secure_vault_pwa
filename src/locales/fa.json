@@ -1,0 +1,66 @@
+{
+  "common": {
+    "secureVault": "گاوصندوق امن",
+    "password": "رمز عبور",
+    "cancel": "لغو",
+    "save": "ذخیره",
+    "close": "بستن",
+    "actions": "عملیات",
+    "size": "اندازه",
+    "dateAdded": "تاریخ افزودن",
+    "name": "نام"
+  },
+  "auth": {
+    "welcome": "به گاوصندوق امن خوش آمدید",
+    "setupSubtitle": "گاوصندوق 100٪ آفلاین و رمزگذاری شده AES-256-GCM خود را راه اندازی کنید.",
+    "masterPassword": "رمز عبور اصلی",
+    "confirmPassword": "تأیید رمز عبور",
+    "initialize": "راه اندازی گاوصندوق",
+    "unlock": "باز کردن گاوصندوق",
+    "unlockSubtitle": "رمز عبور اصلی خود را برای رمزگشایی کلیدهای خود وارد کنید.",
+    "passwordsDoNotMatch": "رمزهای عبور مطابقت ندارند",
+    "invalidPassword": "رمز عبور نامعتبر است",
+    "restoreFromBackup": "بازیابی از نسخه پشتیبان",
+    "vaultRecovery": "بازیابی گاوصندوق",
+    "recoveryDesc": "فایل vault-recovery.json خود را وارد کنید و عبارت خود را وارد کنید.",
+    "selectFile": "انتخاب vault-recovery.json",
+    "recoveryPhrase": "عبارت بازیابی",
+    "restoreVault": "بازیابی گاوصندوق",
+    "provideBoth": "لطفاً هم فایل بازیابی و هم عبارت را وارد کنید.",
+    "decryptionFailed": "رمزگشایی ناموفق بود. عبارت و فایل خود را بررسی کنید."
+  },
+  "dashboard": {
+    "myFiles": "فایل های من",
+    "searchPlaceholder": "جستجوی فایل های رمزگذاری شده...",
+    "importVault": "وارد کردن .svault",
+    "uploadFile": "آپلود فایل",
+    "encrypting": "در حال رمزگذاری {{progress}}%",
+    "emptyVault": "این پوشه خالی است",
+    "emptyVaultDesc": "فایل ها را اینجا بکشید و رها کنید تا به طور امن رمزگذاری شوند، یا فایل های .svault را برای وارد کردن نسخه های پشتیبان رها کنید.",
+    "dropToEncrypt": "رها کنید تا رمزگذاری یا وارد شود",
+    "dropToEncryptDesc": "فایل های خام رمزگذاری می شوند. نسخه های پشتیبان .svault وارد می شوند.",
+    "preview": "پیش نمایش",
+    "export": "خروجی",
+    "exportDecrypted": "خروجی رمزگشایی شده",
+    "exportEncrypted": "خروجی رمزگذاری شده",
+    "lockVault": "قفل کردن گاوصندوق"
+  },
+  "sidebar": {
+    "library": "کتابخانه",
+    "allFiles": "همه فایل ها",
+    "folders": "پوشه ها",
+    "newFolderPlaceholder": "نام پوشه...",
+    "deleteEmpty": "حذف پوشه خالی"
+  },
+  "settings": {
+    "vaultSettings": "تنظیمات گاوصندوق",
+    "language": "زبان",
+    "english": "English",
+    "arabic": "العربية",
+    "persian": "فارسی",
+    "dangerZone": "منطقه خطر",
+    "recoveryKey": "کلید بازیابی",
+    "recoveryDesc": "یک نسخه پشتیبان آفلاین از کلید داده اصلی خود ایجاد کنید.",
+    "generateBackup": "ایجاد نسخه بازیابی"
+  }
+}

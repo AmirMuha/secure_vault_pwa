@@ -1,0 +1,66 @@
+{
+  "common": {
+    "secureVault": "SecureVault",
+    "password": "Password",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "actions": "Actions",
+    "size": "Size",
+    "dateAdded": "Date Added",
+    "name": "Name"
+  },
+  "auth": {
+    "welcome": "Welcome to SecureVault",
+    "setupSubtitle": "Initialize your 100% offline, AES-256-GCM encrypted vault.",
+    "masterPassword": "Master Password",
+    "confirmPassword": "Confirm Password",
+    "initialize": "Initialize Vault",
+    "unlock": "Unlock Vault",
+    "unlockSubtitle": "Enter your master password to decrypt your keys.",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "invalidPassword": "Invalid password",
+    "restoreFromBackup": "Restore from Backup",
+    "vaultRecovery": "Vault Recovery",
+    "recoveryDesc": "Import your vault-recovery.json and enter your phrase.",
+    "selectFile": "Select vault-recovery.json",
+    "recoveryPhrase": "Recovery Phrase",
+    "restoreVault": "Restore Vault",
+    "provideBoth": "Please provide both the recovery file and the phrase.",
+    "decryptionFailed": "Decryption failed. Check your phrase and file."
+  },
+  "dashboard": {
+    "myFiles": "My Files",
+    "searchPlaceholder": "Search encrypted files...",
+    "importVault": "Import .svault",
+    "uploadFile": "Upload File",
+    "encrypting": "Encrypting {{progress}}%",
+    "emptyVault": "This folder is empty",
+    "emptyVaultDesc": "Drag and drop files here to securely encrypt them, or drop .svault files to import backups.",
+    "dropToEncrypt": "Drop to Encrypt or Import",
+    "dropToEncryptDesc": "Raw files will be encrypted. .svault backups will be imported.",
+    "preview": "Preview",
+    "export": "Export",
+    "exportDecrypted": "Export Decrypted",
+    "exportEncrypted": "Export Encrypted",
+    "lockVault": "Lock Vault"
+  },
+  "sidebar": {
+    "library": "Library",
+    "allFiles": "All Files",
+    "folders": "Folders",
+    "newFolderPlaceholder": "Folder name...",
+    "deleteEmpty": "Delete empty folder"
+  },
+  "settings": {
+    "vaultSettings": "Vault Settings",
+    "language": "Language",
+    "english": "English",
+    "arabic": "العربية",
+    "persian": "فارسی",
+    "dangerZone": "Danger Zone",
+    "recoveryKey": "Recovery Key",
+    "recoveryDesc": "Generate an offline backup of your Master Data Key.",
+    "generateBackup": "Generate Recovery Backup"
+  }
+}

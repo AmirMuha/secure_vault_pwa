@@ -1,0 +1,50 @@
+name: Deploy to Remote Ubuntu Server (Nginx)
+
+on:
+  workflow_dispatch:
+  # Uncomment the lines below to enable automatic deployment on push
+  # push:
+  #   branches: ["main", "master"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Transfer Build to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          source: "dist/*"
+          target: "/var/www/secure_vault_PWA"
+          strip_components: 0
+
+      - name: Set Nginx Permissions
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # Ensure the web server (Nginx usually runs as www-data) has permission to read the files
+            sudo chown -R www-data:www-data /var/www/secure_vault_PWA/dist
+            sudo chmod -R 755 /var/www/secure_vault_PWA/dist
+            echo "Deployment to /var/www/secure_vault_PWA/dist complete!"

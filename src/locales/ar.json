@@ -1,0 +1,66 @@
+{
+  "common": {
+    "secureVault": "الخزنة الآمنة",
+    "password": "كلمة المرور",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "close": "إغلاق",
+    "actions": "الإجراءات",
+    "size": "الحجم",
+    "dateAdded": "تاريخ الإضافة",
+    "name": "الاسم"
+  },
+  "auth": {
+    "welcome": "مرحباً بك في الخزنة الآمنة",
+    "setupSubtitle": "قم بتهيئة خزينتك المشفرة AES-256-GCM دون اتصال بالإنترنت 100%.",
+    "masterPassword": "كلمة المرور الرئيسية",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "initialize": "تهيئة الخزنة",
+    "unlock": "فتح الخزنة",
+    "unlockSubtitle": "أدخل كلمة المرور الرئيسية لفك تشفير مفاتيحك.",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+    "invalidPassword": "كلمة المرور غير صحيحة",
+    "restoreFromBackup": "استعادة من نسخة احتياطية",
+    "vaultRecovery": "استرداد الخزنة",
+    "recoveryDesc": "قم باستيراد vault-recovery.json وأدخل العبارة الخاصة بك.",
+    "selectFile": "اختر vault-recovery.json",
+    "recoveryPhrase": "عبارة الاسترداد",
+    "restoreVault": "استعادة الخزنة",
+    "provideBoth": "يرجى توفير ملف الاسترداد والعبارة معاً.",
+    "decryptionFailed": "فشل فك التشفير. تحقق من العبارة والملف."
+  },
+  "dashboard": {
+    "myFiles": "ملفاتي",
+    "searchPlaceholder": "البحث في الملفات المشفرة...",
+    "importVault": "استيراد .svault",
+    "uploadFile": "رفع ملف",
+    "encrypting": "جاري التشفير {{progress}}%",
+    "emptyVault": "هذا المجلد فارغ",
+    "emptyVaultDesc": "اسحب وأفلت الملفات هنا لتشفيرها بأمان، أو أسقط ملفات .svault لاستيراد النسخ الاحتياطية.",
+    "dropToEncrypt": "أفلت للتشفير أو الاستيراد",
+    "dropToEncryptDesc": "سيتم تشفير الملفات الخام. سيتم استيراد النسخ الاحتياطية .svault.",
+    "preview": "معاينة",
+    "export": "تصدير",
+    "exportDecrypted": "تصدير غير مشفر",
+    "exportEncrypted": "تصدير مشفر",
+    "lockVault": "قفل الخزنة"
+  },
+  "sidebar": {
+    "library": "المكتبة",
+    "allFiles": "كل الملفات",
+    "folders": "المجلدات",
+    "newFolderPlaceholder": "اسم المجلد...",
+    "deleteEmpty": "حذف المجلد الفارغ"
+  },
+  "settings": {
+    "vaultSettings": "إعدادات الخزنة",
+    "language": "اللغة",
+    "english": "English",
+    "arabic": "العربية",
+    "persian": "فارسی",
+    "dangerZone": "منطقة الخطر",
+    "recoveryKey": "مفتاح الاسترداد",
+    "recoveryDesc": "قم بإنشاء نسخة احتياطية غير متصلة بالإنترنت لمفتاح البيانات الرئيسي الخاص بك.",
+    "generateBackup": "إنشاء نسخة استرداد"
+  }
+}
