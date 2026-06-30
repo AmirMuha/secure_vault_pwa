@@ -3,11 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Define deployment variables
-PORT=3000
 APP_NAME="secure-vault"
 
-echo "=== Starting deployment for $APP_NAME on port $PORT ==="
+echo "=== Starting deployment for $APP_NAME ==="
 
 # 1. Install dependencies
 echo "Installing dependencies..."
@@ -18,15 +16,4 @@ echo "Building the application..."
 npm run type-check
 npm run build
 
-# 3. Deploy via PM2
-echo "Deploying application via PM2..."
-# Delete old instance if it exists to avoid port/name conflicts
-pm2 delete "$APP_NAME" 2>/dev/null || true
-
-# Start the Node.js server using PM2 with the designated PORT
-PORT=$PORT pm2 start server.js --name "$APP_NAME"
-
-# Save the PM2 process list to load on reboot
-pm2 save
-
-echo "=== Deployment completed successfully! App is running on port $PORT ==="
+echo "=== Build completed successfully! Nginx will now serve the static assets directly. ==="
